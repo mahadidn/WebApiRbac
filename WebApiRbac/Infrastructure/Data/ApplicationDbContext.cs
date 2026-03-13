@@ -33,7 +33,17 @@ namespace WebApiRbac.Infrastructure.Data
                 .HasMany(u => u.Roles)
                 .WithMany(r => r.Users)
                 // Memaksa EF Core membuat tabel perantara dengan nama spesifik sesuai ERD
-                .UsingEntity(j => j.ToTable("user_has_roles"));
+                //.UsingEntity(j => j.ToTable("user_has_roles"));
+                // Memasukkan class UserRole sebagai representasi resmi tabel ini
+                .UsingEntity<UserRole>(
+                    j => j.HasOne(ur => ur.Role).WithMany().HasForeignKey(ur => ur.RolesId),
+                    j => j.HasOne(ur => ur.User).WithMany().HasForeignKey(ur => ur.UsersId),
+                    j =>
+                    {
+                        j.ToTable("user_has_roles");
+                        j.HasKey(ur => new { ur.RolesId, ur.UsersId }); // set composite primary key
+                    }
+                );
 
             // configuration many to many relationship: role-permission
             modelBuilder.Entity<Role>()

@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using WebApiRbac.Application.Interfaces;
+using WebApiRbac.Application.Services;
+using WebApiRbac.Domain.Interfaces;
 using WebApiRbac.Infrastructure.Data;
+using WebApiRbac.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +13,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // registering ApplicationDbContext to the system with the PostgreSQL driver
 builder.Services.AddDbContext<ApplicationDbContext> (options => options.UseNpgsql(connectionString));
 
-// Add services to the container.
+// Mendaftarkan Repository (Infrastructure)
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Add services to the container
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

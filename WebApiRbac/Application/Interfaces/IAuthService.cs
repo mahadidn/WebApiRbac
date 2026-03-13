@@ -1,0 +1,12 @@
+﻿using WebApiRbac.Application.DTOs.Auth;
+using WebApiRbac.Application.DTOs.Users;
+
+namespace WebApiRbac.Application.Interfaces
+{
+    public interface IAuthService
+    {
+        // receive DTO request, and return DTO response
+        Task<UserResponseDto> RegisterAsync(RegisterRequestDto request);
+
+    }
+}

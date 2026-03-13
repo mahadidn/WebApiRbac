@@ -2,7 +2,7 @@
 {
     public class Role
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.CreateVersion7();
         public string Name { get; set; } = string.Empty; // to prevent nullable
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
