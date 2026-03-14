@@ -13,5 +13,7 @@
         // many to many relation: one user can be owned by multiple roles
         public ICollection<Role> Roles { get; set; } = new List<Role>();
 
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
     }
 }
