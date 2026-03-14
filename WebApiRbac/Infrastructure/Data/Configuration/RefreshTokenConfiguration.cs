@@ -16,6 +16,8 @@ namespace WebApiRbac.Infrastructure.Data.Configuration
             // IPv6 memiliki panjang max 45 characters
             builder.Property(rt => rt.CreatedByIp).HasMaxLength(45);
 
+            builder.Property(rt => rt.ReplacedByToken).HasMaxLength(255);
+
             // relasi ke user (One-to-Many)
             builder.HasOne(rt => rt.User)
                 .WithMany(u => u.RefreshTokens)

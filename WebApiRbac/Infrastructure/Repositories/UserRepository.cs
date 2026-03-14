@@ -184,7 +184,50 @@ namespace WebApiRbac.Infrastructure.Repositories
             return permissions;
         }
 
+        // refresh token implementation
+        public async Task AddRefreshTokenAsync(RefreshToken refreshToken)
+        {
+            // insert the token into the memory queue
+            await _context.RefreshTokens.AddAsync(refreshToken);
 
+            // store permanently to postgre
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<RefreshToken?> GetRefreshTokenAsync(string token)
+        {
+            // menggunakan .Include(rt => rt.User) di sini
+            // Mengapa? Karena saat user membawa string Refresh Token ke API,
+            // kita butuh tahu token itu milik siapa (Username, Email, dll) 
+            // untuk nantinya dibuatkan JWT yang baru. Include akan otomatis melakukan SQL JOIN.
+            /*
+             * perintah sql yg dijalanin kira-kira
+                SELECT r."Id", r."Token", r."Expires", r."UserId", ..., 
+                       u."Id", u."Username", u."Email", ...
+                FROM refresh_tokens AS r
+                INNER JOIN users AS u ON r."UserId" = u."Id"
+                WHERE r."Token" = @token
+                LIMIT 1;
+             */
+            return await _context.RefreshTokens
+                .Include(rt => rt.User)
+                .FirstOrDefaultAsync(rt => rt.Token == token);
+        }
+
+        public async Task UpdateRefreshTokenAsync(RefreshToken refreshToken)
+        {
+            // update status token (For example: The “Revoked” property is set to the date of logout)
+            _context.RefreshTokens.Update(refreshToken);
+            await _context.SaveChangesAsync();
+        }
+
+        // revoke all refresh token
+        public async Task RevokeAllRefreshTokensAsync(Guid userId)
+        {
+            await _context.RefreshTokens
+                .Where(rt => rt.UserId == userId && rt.Revoked == null) // cari token milik user ini yang masih aktif 
+                .ExecuteUpdateAsync(s => s.SetProperty(rt => rt.Revoked, DateTime.UtcNow));
+        }
 
 
     }

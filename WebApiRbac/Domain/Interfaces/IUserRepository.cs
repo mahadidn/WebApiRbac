@@ -22,5 +22,18 @@ namespace WebApiRbac.Domain.Interfaces
         Task<IEnumerable<Role>> GetUserRolesAsync(Guid userId);
         // Retrieve all permission names from a user
         Task<IEnumerable<string>> GetUserPermissionsAsync(Guid userId);
+
+
+        // for refresh token
+        // add new token, when user successfully login
+        Task AddRefreshTokenAsync(RefreshToken refreshToken);
+
+        // find token in the database whem user asking for new jwt
+        Task<RefreshToken?> GetRefreshTokenAsync(string token);
+
+        // update token status (if user logout, token will be revoke)
+        Task UpdateRefreshTokenAsync(RefreshToken refreshToken);
+        // tombol darurat
+        Task RevokeAllRefreshTokensAsync(Guid userId);
     }
 }

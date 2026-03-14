@@ -8,6 +8,8 @@
         public DateTime Created { get; set; } = DateTime.UtcNow;
         public string? CreatedByIp { get; set; }
         public DateTime? Revoked { get; set; }
+        // menyimpan token baru yg menggantikan token ini (berantai)
+        public string? ReplacedByToken { get; set; }
 
         // relasi ke user
         public Guid UserId { get; set; }

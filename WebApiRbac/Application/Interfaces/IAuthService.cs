@@ -8,6 +8,7 @@ namespace WebApiRbac.Application.Interfaces
         // receive DTO request, and return DTO response
         Task<UserResponseDto> RegisterAsync(RegisterRequestDto request);
         Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
+        Task<LoginResponseDto> RefreshTokenAsync(string refreshToken, string? ipAddress = null);
 
     }
 }

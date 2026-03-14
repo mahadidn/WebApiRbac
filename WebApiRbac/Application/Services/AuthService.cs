@@ -1,6 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using WebApiRbac.Application.DTOs.Auth;
 using WebApiRbac.Application.DTOs.Users;
@@ -95,6 +96,110 @@ namespace WebApiRbac.Application.Services
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
             var permissions = await _userRepository.GetUserPermissionsAsync(user.Id);
 
+            // call generate jwt & refresh token
+            var jwtToken = GenerateJwtToken(user, roles, permissions);
+            var refreshTokenString = GenerateRefreshTokenString();
+
+            // insert refresh token to database
+            var refreshToken = new RefreshToken
+            {
+                Token = refreshTokenString,
+                UserId = user.Id,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+            await _userRepository.AddRefreshTokenAsync(refreshToken);
+
+            // return the token as a string to the controller
+            var expireMinutes = Convert.ToInt32(_configuration["Jwt:ExpireMinutes"] ?? "60");
+            return new LoginResponseDto
+            {
+                AccessToken = jwtToken,
+                TokenType = "Bearer",
+                ExpiresIn = expireMinutes * 60, // change to second
+                RefreshToken = refreshTokenString // Controller sangat butuh ini untuk membuat Cookie nanti!
+            };
+
+        }
+
+        // refresh token async
+        /*
+            Ini adalah endpoint rahasia yang akan dipanggil oleh Frontend secara diam-diam.
+            Di sini kita menerapkan teknik keamanan tingkat tinggi bernama Refresh Token Rotation. 
+            Artinya, setiap kali user meminta JWT baru, Refresh Token yang lama langsung kita matikan (Revoke) dan 
+            kita beri Refresh Token yang baru juga! Ini mencegah pencurian token ganda.
+         */
+        public async Task<LoginResponseDto> RefreshTokenAsync(string oldRefreshTokenString, string? ipAddress = null)
+        {
+            // find token in the database
+            var existingToken = await _userRepository.GetRefreshTokenAsync(oldRefreshTokenString);
+
+            // validation (check if its exist, or if its expired, or if its revoked)
+            if (existingToken == null)
+            {
+                throw new Exception("Sesi telah berakhir atau tidak valid. Silakan login kembali.");
+            }
+
+            // alarm deteksi penggunaan ulang token (reuse detection)
+            if (existingToken.IsRevoked)
+            {
+                // BAHAYA! Token ini sudah mati, tapi ada yang mencoba memakainya lagi!
+                // Ini ciri khas token curian yang sedang dipakai attacker, atau user mengalami desinkronisasi.
+                await _userRepository.RevokeAllRefreshTokensAsync(existingToken.UserId);
+                throw new Exception("Suspicious activity detected! All sessions have been terminated for security reasons. Please log in again using your password.");
+            }
+
+            // validasi normal
+            if (existingToken.IsExpired)
+            {
+                throw new Exception("Sesi telah berakhir. Silakan login kembali.");
+            }
+
+            // ambil data user beserta roles dan permission-nya
+            // (existingToken.User tidak akan null karena kita pakai .Include() di Repository)
+            var user = existingToken.User!;
+            var roles = await _userRepository.GetUserRolesAsync(user.Id);
+            var permissions = await _userRepository.GetUserPermissionsAsync(user.Id);
+
+            // generate token
+            var newJwtToken = GenerateJwtToken(user, roles, permissions);
+            var newRefreshTokenString = GenerateRefreshTokenString();
+
+            // membentuk rantai pelacak (token chain)
+            // matikan token lama dan tulis token baru
+            existingToken.Revoked = DateTime.UtcNow;
+            existingToken.ReplacedByToken = newRefreshTokenString; // Ini adalah kunci pelacakannya!
+
+            // refresh token rotation
+            // matikan token lama agar tidak bisa dipakai lagi
+            await _userRepository.UpdateRefreshTokenAsync(existingToken);
+
+            // simpan token yg baru ke database
+            var newRefreshToken = new RefreshToken
+            {
+                Token = newRefreshTokenString,
+                UserId = user.Id,
+                Expires = DateTime.UtcNow.AddDays(7),
+                CreatedByIp = ipAddress
+            };
+
+            await _userRepository.AddRefreshTokenAsync(newRefreshToken);
+
+            // kembalikan pasangan token baru ke controller
+            var expireMinutes = Convert.ToInt32(_configuration["Jwt:ExpireMinutes"] ?? "60");
+            return new LoginResponseDto
+            {
+                AccessToken = newJwtToken,
+                TokenType = "Bearer",
+                ExpiresIn = expireMinutes * 60,
+                RefreshToken = newRefreshTokenString
+            };
+
+        }
+
+        // buat untuk cetak access token (JWT)
+        private string GenerateJwtToken(User user, IEnumerable<Role> roles, IEnumerable<string> permissions)
+        {
+
             // prepare the “payload” (claims) to be included in the JWT
             var claims = new List<Claim>
             {
@@ -137,17 +242,23 @@ namespace WebApiRbac.Application.Services
                 signingCredentials: creds
             );
 
-            // return the token as a string to the controller
-            return new LoginResponseDto
-            {
-                AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                TokenType = "Bearer",
-                ExpiresIn = expireMinutes * 60 // change to second
-            };
-
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        // pencetak refresh token
+        private string GenerateRefreshTokenString()
+        {
+            // jangan pernah gunakan "new Random()" untuk keamanan
+            // gunakan Cryptographically Secure Random Number Generator (CSRNG).
+            var randomNumber = new Byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
 
+            // ubah byte acak menjadi string base64 agar aman dikirim via http
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        
 
     }
 }
