@@ -73,7 +73,7 @@ namespace WebApiRbac.Application.Services
         }
 
         // login
-        public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
+        public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request, string? ipAddress = null)
         {
             // find user, with username or email
             var user = await _userRepository.GetByEmailAsync(request.Identifier)
@@ -105,6 +105,7 @@ namespace WebApiRbac.Application.Services
             {
                 Token = refreshTokenString,
                 UserId = user.Id,
+                CreatedByIp = ipAddress,
                 Expires = DateTime.UtcNow.AddDays(7)
             };
             await _userRepository.AddRefreshTokenAsync(refreshToken);
@@ -194,6 +195,20 @@ namespace WebApiRbac.Application.Services
                 RefreshToken = newRefreshTokenString
             };
 
+        }
+
+        // logout
+        public async Task LogoutAsync(string refreshToken)
+        {
+            // cari token di database
+            var existingToken = await _userRepository.GetRefreshTokenAsync(refreshToken);
+
+            // jika ketemu dan masih aktif, maka revoke
+            if(existingToken != null && existingToken.IsActive)
+            {
+                existingToken.Revoked = DateTime.UtcNow;
+                await _userRepository.UpdateRefreshTokenAsync(existingToken);
+            }
         }
 
         // buat untuk cetak access token (JWT)

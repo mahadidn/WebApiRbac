@@ -10,11 +10,15 @@ namespace WebApiRbac.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
 
         // dependency injection
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IConfiguration configuration, IWebHostEnvironment env)
         {
             _authService = authService;
+            _configuration = configuration;
+            _env = env;
         }
 
         // Register
@@ -48,8 +52,9 @@ namespace WebApiRbac.Controllers
         {
             try
             {
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                 // verifikasi & buat 2 token
-                var result = await _authService.LoginAsync(request);
+                var result = await _authService.LoginAsync(request, ipAddress);
 
                 // selipkan refresh token ke dalam amplop cookie
                 SetRefreshTokenCookie(result.RefreshToken);
@@ -88,7 +93,8 @@ namespace WebApiRbac.Controllers
                 }
 
                 // 2. Serahkan token lama itu ke Koki untuk divalidasi dan ditukar dengan yang baru
-                var result = await _authService.RefreshTokenAsync(refreshToken);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var result = await _authService.RefreshTokenAsync(refreshToken, ipAddress);
 
                 // 3. Selipkan Refresh Token YANG BARU ke dalam Amplop Cookie (menimpa cookie yang lama)
                 SetRefreshTokenCookie(result.RefreshToken);
@@ -116,6 +122,29 @@ namespace WebApiRbac.Controllers
             }
         }
 
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            // ambil token dari cookie
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            // kalau tokennya tidak null/empty
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                // matikan token ini di database
+                await _authService.LogoutAsync(refreshToken);
+            }
+
+            // perintahkan browser untuk menghapus cookie
+            // browser akan mencari cookie dengan nama "refreshToken" dan langsung menghancurkannya.
+            Response.Cookies.Delete("refreshToken");
+
+            return Ok(new
+            {
+                message = "Logout berhasil."
+            });
+        }
+
 
         // helper method
         private void SetRefreshTokenCookie(string token)
@@ -124,8 +153,10 @@ namespace WebApiRbac.Controllers
             {
                 HttpOnly = true, // Wajib! Agar tidak bisa dibaca oleh JavaScript (Anti-XSS)
                 Secure = true, // Wajib HTTPS (Browser otomatis mengizinkan localhost)
-                SameSite = SameSiteMode.Strict,// Anti-CSRF (Hanya dikirim jika request dari domain yang sama)
-                Expires = DateTime.UtcNow.AddDays(7) // umur ini 7 hari
+                SameSite = _env.IsProduction() ? SameSiteMode.Strict : SameSiteMode.Lax,// Anti-CSRF (Hanya dikirim jika request dari domain yang sama)
+                Expires = DateTime.UtcNow.AddDays(
+                    Convert.ToInt32(_configuration["Jwt:RefreshTokenExpireDays"] ?? "7")
+                ) 
             };
 
             // memasukkan token kedalam cookkie bernama "refreshToken" dan menitipkannya ke Response browser
