@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using WebApiRbac.Application.Common.Extensions;
 using WebApiRbac.Application.DTOs.Auth;
 using WebApiRbac.Application.Interfaces;
 
@@ -142,6 +146,26 @@ namespace WebApiRbac.Controllers
             return Ok(new
             {
                 message = "Logout berhasil."
+            });
+        }
+
+        [Authorize]
+        [HttpGet("test-auth")]
+        public IActionResult TestAuth()
+        {
+            // Mengambil identifier dari jwt token claims
+            var id = User.GetUserId();
+            var username = User.GetUsername();
+            var email = User.GetEmail();
+
+            return Ok(new
+            {
+                message = $"Selamat datang, {username}!",
+                data = new
+                {
+                    userId = id,
+                    userEmail = email
+                }
             });
         }
 

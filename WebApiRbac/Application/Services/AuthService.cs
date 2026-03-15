@@ -218,22 +218,22 @@ namespace WebApiRbac.Application.Services
             // prepare the “payload” (claims) to be included in the JWT
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // subject id user
+                new Claim("id", user.Id.ToString()), // subject id user
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // unique id token
-                new Claim(ClaimTypes.NameIdentifier, user.Username),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim("username", user.Username),
+                new Claim("email", user.Email)
             };
 
             // include all roles in the token payload
             foreach (var role in roles)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role.Name));
+                claims.Add(new Claim("role", role.Name));
             }
 
             // include all permissons in the token payload
             foreach (var permission in permissions)
             {
-                claims.Add(new Claim("Permission", permission));
+                claims.Add(new Claim("permission", permission));
             }
 
             // retrieve secret key from usersecrets
