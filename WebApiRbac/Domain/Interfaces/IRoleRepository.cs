@@ -1,4 +1,5 @@
-﻿using WebApiRbac.Domain.Entities;
+﻿using WebApiRbac.Application.DTOs.Permission;
+using WebApiRbac.Domain.Entities;
 
 namespace WebApiRbac.Domain.Interfaces
 {
@@ -25,7 +26,7 @@ namespace WebApiRbac.Domain.Interfaces
         Task SyncPermissionsAsync(Guid roleId, IEnumerable<Guid> permissionIds);
 
         // what privileges this role has
-        Task<IEnumerable<Permission>> GetRolePermissionsAsync();
+        Task<IEnumerable<PermissionDto>> GetRolePermissionsAsync(Guid roleId);
 
     }
 }
