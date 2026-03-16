@@ -170,6 +170,7 @@ namespace WebApiRbac.Controllers
         }
 
 
+
         // helper method
         private void SetRefreshTokenCookie(string token)
         {

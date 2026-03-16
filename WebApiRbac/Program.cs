@@ -21,6 +21,8 @@ builder.Services.AddDbContext<ApplicationDbContext> (options => options.UseNpgsq
 // Mendaftarkan Repository (Infrastructure)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 // authentication
 builder.Services.AddAuthentication(options =>
@@ -54,9 +56,11 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
 
         // Secara default, .NET memberi "toleransi waktu" (Clock Skew) selama 5 menit untuk token yang expired.
-        // Karena kita sudah punya sistem Refresh Token yang canggih, kita tidak butuh toleransi itu.
-        // Kita atur ke 0 agar token mati TEPAT pada detiknya!
-        ClockSkew = TimeSpan.Zero
+        // Karena sudah ada sistem Refresh Token, kita tidak butuh toleransi itu.
+        // Atur ke 0 agar token mati TEPAT pada detiknya!
+        ClockSkew = TimeSpan.Zero,
+
+        RoleClaimType = "role",
     };
 });
 

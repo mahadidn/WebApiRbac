@@ -4,6 +4,6 @@ namespace WebApiRbac.Domain.Interfaces
 {
     public interface IPermissionRepository
     {
-        Task<Permission?> GetAllAsync();
+        Task<IEnumerable<Permission>> GetAllAsync();
     }
 }
