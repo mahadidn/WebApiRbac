@@ -44,7 +44,11 @@ namespace WebApiRbac.Application.Services
                 Name = role.Name,
                 CreatedAt = role.CreatedAt,
                 UpdatedAt = role.UpdatedAt,
-                Permissions = role.Permissions.Select(p => p.Name).ToList(),
+                Permissions = role.Permissions.Select(p => new RolePermissionDto
+                {
+                    Id = p.Id,
+                    Name = p.Name
+                }).ToList()
             };
 
         }

@@ -10,7 +10,7 @@
         public DateTime? UpdatedAt { get; set; }
 
         // return a collection of texts (strings) with only the role names so that the JSON is clean.
-        public IEnumerable<string> Roles { get; set; } = new List<string>();
+        public List<UserRoleDto> Roles { get; set; } = new List<UserRoleDto>();
 
     }
 }

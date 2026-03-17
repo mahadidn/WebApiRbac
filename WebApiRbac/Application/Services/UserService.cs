@@ -28,8 +28,8 @@ namespace WebApiRbac.Application.Services
                 Id = u.Id,
                 Username = u.Username,
                 Email = u.Email,
-                CreatedAt = u.CreatedAt,
-                UpdatedAt = u.UpdatedAt
+                Roles = u.Roles.Select(r => r.Name).ToList()
+                
             });
 
             // bungkus dengan wadah pagination
@@ -55,7 +55,11 @@ namespace WebApiRbac.Application.Services
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt,
-                Roles = user.Roles.Select(r => r.Name).ToList() // Ambil nama rolenya saja
+                Roles = user.Roles.Select(r => new UserRoleDto
+                {
+                    Id = r.Id,
+                    Name = r.Name
+                }).ToList()
             };
 
         }

@@ -16,10 +16,14 @@ namespace WebApiRbac.Extensions
                 try
                 {
                     var context = services.GetRequiredService<ApplicationDbContext>();
+                    
                     // pastikan database sudah terbuat
                     await context.Database.MigrateAsync();
-                    // jalankan seeder
+                    // jalankan seeder permission
                     await DatabaseSeeder.PermissionSeedAsync(context);
+                    // jalankan seeder super admin
+                    await DatabaseSeeder.SuperAdminSeedAsync(context, app.Configuration);
+                
                 }
                 catch (Exception ex)
                 {

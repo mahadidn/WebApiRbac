@@ -7,7 +7,7 @@
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public List<string> Permissions { get; set; } = new List<string>();
+        public List<RolePermissionDto> Permissions { get; set; } = new List<RolePermissionDto>();
 
     }
 }

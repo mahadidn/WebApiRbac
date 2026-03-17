@@ -57,6 +57,7 @@ namespace WebApiRbac.Infrastructure.Repositories
 
             // eksekusi pagination
             var users = await query
+                .Include(u => u.Roles)
                 .OrderBy(u => u.Username)
                 .Skip((pageNumber - 1) * pageSize) // lewati data halaman sebelumnya
                 .Take(pageSize) // ambil data sebanyak ukuran halaman
