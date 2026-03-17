@@ -65,6 +65,7 @@ namespace WebApiRbac.Application.Services
                 Id = newUser.Id,
                 Username = newUser.Username,
                 Email = newUser.Email,
+                UpdatedAt = null,
                 CreatedAt = newUser.CreatedAt,
                 Roles = new List<string>()
             };

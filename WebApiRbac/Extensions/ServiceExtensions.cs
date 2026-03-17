@@ -32,6 +32,7 @@ namespace WebApiRbac.Extensions
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IUserService, UserService>();
         }
 
         // JWT & Auth Configuration

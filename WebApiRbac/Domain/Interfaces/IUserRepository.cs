@@ -6,6 +6,8 @@ namespace WebApiRbac.Domain.Interfaces
     {
         // Task<> is the C# version of asynchronous
         Task<User?> GetByIdAsync(Guid id); // get user by id
+        Task<User?> GetOnlyUserByIdAsync(Guid id);
+        Task<(IEnumerable<User> Users, int TotalCount)> GetAllAsync(int pageNumber, int pageSize);
         Task<User?> GetByUsernameAsync(string username);
         Task<User?> GetByEmailAsync(string email);
 

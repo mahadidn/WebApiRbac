@@ -30,13 +30,40 @@ namespace WebApiRbac.Infrastructure.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
         }
 
-        // get by id
+        // get user with role by id
         public async Task<User?> GetByIdAsync(Guid id)
         {
             // Include() digunakan untuk mengambil data relasi Many-to-Many sekaligus (Eager Loading)
             return await _context.Users
+                .AsNoTracking()
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        // get only user
+        public async Task<User?> GetOnlyUserByIdAsync(Guid id)
+        {
+            return await _context.Users
+                .FindAsync(id);
+        }
+
+        public async Task<(IEnumerable<User> Users, int TotalCount)> GetAllAsync(int pageNumber, int pageSize)
+        {
+            // siapkan query dasarnya
+            var query = _context.Users.AsNoTracking();
+
+            // hitung seluruh data sebelum dipotong pagination
+            var totalCount = await query.CountAsync();
+
+            // eksekusi pagination
+            var users = await query
+                .OrderBy(u => u.Username)
+                .Skip((pageNumber - 1) * pageSize) // lewati data halaman sebelumnya
+                .Take(pageSize) // ambil data sebanyak ukuran halaman
+                .ToListAsync(); // eksekusi ke db
+
+            return (users, totalCount);
+
         }
 
         // add new user
@@ -52,8 +79,13 @@ namespace WebApiRbac.Infrastructure.Repositories
         // update user
         public async Task UpdateAsync(User user)
         {
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            await _context.Users
+                .Where(u => u.Id == user.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.Username, user.Username)
+                    .SetProperty(u => u.Email, user.Email)
+                    .SetProperty(u => u.UpdatedAt, DateTime.UtcNow)
+                );
         }
 
         // get user roles
@@ -122,7 +154,8 @@ namespace WebApiRbac.Infrastructure.Repositories
         // sync roles
         public async Task SyncRolesAsync(Guid userId, IEnumerable<Guid> roleIds)
         {
-            roleIds = roleIds.Distinct(); // untuk menghindari duplikat
+            // untuk menghindari duplikat
+            var uniqueRoleIds = roleIds.Distinct().ToList();
 
             // tansaksi
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -134,18 +167,30 @@ namespace WebApiRbac.Infrastructure.Repositories
                     .Where(ur => ur.UsersId == userId)
                     .ExecuteDeleteAsync();
 
-                // masukkan role baru
-                if (roleIds.Any())
+                // masukkan role baru (jika ada)
+                if (uniqueRoleIds.Any())
                 {
-                    var newRoles = roleIds.Select(roleId => new UserRole
-                    {
-                        UsersId = userId,
-                        RolesId = roleId
-                    });
 
-                    await _context.Set<UserRole>().AddRangeAsync(newRoles);
-                    // simpan perubahan insert
-                    await _context.SaveChangesAsync();
+                    // cek apakah uniqueRoleIds benar-benar ada di database
+                    var validRoleIds = await _context.Roles
+                        .Where(r => uniqueRoleIds.Contains(r.Id))
+                        .Select(r => r.Id)
+                        .ToListAsync();
+
+                    // kalau ada maka tambahkan validRoleIds ke database
+                    if (validRoleIds.Any())
+                    {
+                        var newRoles = validRoleIds.Select(roleId => new UserRole
+                        {
+                            UsersId = userId,
+                            RolesId = roleId
+                        });
+
+                        await _context.Set<UserRole>().AddRangeAsync(newRoles);
+                        // simpan perubahan insert
+                        await _context.SaveChangesAsync();
+                    }
+                    
                 }
 
                 // jika baris ini tercapai, artinya delete dan insert berhasil tanpa error
