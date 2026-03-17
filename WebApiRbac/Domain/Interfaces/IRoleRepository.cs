@@ -6,6 +6,8 @@ namespace WebApiRbac.Domain.Interfaces
     public interface IRoleRepository
     {
         Task<Role?> GetByIdAsync(Guid id);
+        Task<bool> ExistsAsync(Guid id);
+        Task<Role?> GetOnlyRoleAsync(Guid id);
         Task<Role?> GetByNameAsync(string name);
         
         // get all roles

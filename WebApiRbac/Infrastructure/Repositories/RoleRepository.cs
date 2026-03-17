@@ -18,9 +18,23 @@ namespace WebApiRbac.Infrastructure.Repositories
         // get by id
         public async Task<Role?> GetByIdAsync(Guid id)
         {
+            return await _context.Roles
+                .AsNoTracking()
+                .Include(r => r.Permissions)
+                .FirstOrDefaultAsync(r => r.Id == id);
+        }
+
+        public async Task<Role?> GetOnlyRoleAsync(Guid id)
+        {
+            return await _context.Roles
+                .FirstOrDefaultAsync(r => r.Id == id);
+        }
+
+        public async Task<bool> ExistsAsync(Guid id)
+        {
             // pakai FindAsync sangat cepat karena dia akan mengecek memori lokal EF Core dulu 
             // sebelum menembak query ke PostgreSQL.
-            return await _context.Roles.FindAsync(id);
+            return await _context.Roles.AnyAsync(r => r.Id == id);
         }
 
         // get by name
