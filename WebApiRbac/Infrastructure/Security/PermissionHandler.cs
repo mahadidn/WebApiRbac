@@ -20,7 +20,7 @@ namespace WebApiRbac.Infrastructure.Security
                 context.Succeed(requirement);
             }
 
-            // jika ada maka akan succeed, jika tidak ada maka akan forbidden
+            // jika ada context.Succeed maka akan succeed, jika tidak ada maka akan forbidden
             return Task.CompletedTask;
 
         }

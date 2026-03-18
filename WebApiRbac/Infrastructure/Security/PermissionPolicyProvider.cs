@@ -22,6 +22,7 @@ namespace WebApiRbac.Infrastructure.Security
                 // jika ga ada, buatkan aturan baru secara dinamis
                 // suruh sistem mengecek "PermissionRequirement" dengan nama policy tersebut
                 policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
                     .AddRequirements(new PermissionRequirement(policyName))
                     .Build();
             }
