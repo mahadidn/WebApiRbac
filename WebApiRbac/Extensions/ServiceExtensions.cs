@@ -6,6 +6,7 @@ using System.Text;
 using WebApiRbac.Application.Interfaces;
 using WebApiRbac.Application.Services;
 using WebApiRbac.Domain.Interfaces;
+using WebApiRbac.Infrastructure.BackgroundJobs;
 using WebApiRbac.Infrastructure.Data;
 using WebApiRbac.Infrastructure.Repositories;
 using WebApiRbac.Infrastructure.Security;
@@ -35,6 +36,7 @@ namespace WebApiRbac.Extensions
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddHostedService<TokenCleanupService>();
         }
 
         // JWT & Auth Configuration

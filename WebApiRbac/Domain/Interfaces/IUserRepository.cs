@@ -37,5 +37,8 @@ namespace WebApiRbac.Domain.Interfaces
         Task UpdateRefreshTokenAsync(RefreshToken refreshToken);
         // tombol darurat
         Task RevokeAllRefreshTokensAsync(Guid userId);
+
+        // untuk menghapus token lama yang sudah expire
+        Task DeleteOldRefreshTokensAsync(int daysToKeep);
     }
 }

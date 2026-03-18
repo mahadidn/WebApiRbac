@@ -276,5 +276,23 @@ namespace WebApiRbac.Infrastructure.Repositories
         }
 
 
+        // menghapus token lama yang tidak digunakan lagi
+        public async Task DeleteOldRefreshTokensAsync(int daysToKeep)
+        {
+
+            var cutoffDate = DateTime.UtcNow.AddDays(-daysToKeep);
+
+            // langsung eksekusi delete
+            /*
+                contoh query:
+                   DELETE FROM "RefreshTokens"
+                    WHERE "Expires" < '2026-02-16'  -- contoh cutoffDate (30 hari lalu)
+                       OR ("Revoked" IS NOT NULL AND "Revoked" < '2026-02-16')
+             */
+            await _context.RefreshTokens
+                .Where(rt => rt.Expires < cutoffDate || (rt.Revoked != null && rt.Revoked < cutoffDate))
+                .ExecuteDeleteAsync();
+        }
+
     }
 }
