@@ -219,10 +219,10 @@ namespace WebApiRbac.Application.Services
             // prepare the “payload” (claims) to be included in the JWT
             var claims = new List<Claim>
             {
-                new Claim("id", user.Id.ToString()), // subject id user
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // subject id user
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // unique id token
-                new Claim("username", user.Username),
-                new Claim("email", user.Email)
+                new Claim(JwtRegisteredClaimNames.Name, user.Username),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email)
             };
 
             // include all roles in the token payload

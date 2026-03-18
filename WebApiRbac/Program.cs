@@ -3,6 +3,11 @@ using WebApiRbac.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddRouting(options =>
+{
+    options.LowercaseUrls = true;
+});
+
 // services
 builder.Services.ConfigureDatabase(builder.Configuration);
 builder.Services.ConfigureDependencies();

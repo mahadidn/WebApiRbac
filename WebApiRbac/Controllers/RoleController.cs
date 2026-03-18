@@ -19,6 +19,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpGet] // GET /api/role
+        [Authorize(Policy = "roles:read")]
         public async Task<IActionResult> GetAllRoles()
         {
             var roles = await _roleService.GetAllRolesAsync();
@@ -32,6 +33,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpGet("{id}")] // GET /api/role/{id}
+        [Authorize(Policy = "roles:read")]
         public async Task<IActionResult> GetRoleById(Guid id)
         {
             var role = await _roleService.GetRoleByIdAsync(id);
@@ -53,6 +55,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpPost] // POST /api/role
+        [Authorize(Policy = "roles:create")]
         public async Task<IActionResult> CreateRole([FromBody] RoleRequestDto request)
         {
             try
@@ -76,6 +79,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpPut("{id}")] // PUT /api/role/{id}
+        [Authorize(Policy = "roles:update")]
         public async Task<IActionResult> UpdateRole(Guid id, [FromBody] RoleRequestDto request)
         {
             try
@@ -98,6 +102,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpDelete("{id}")] // DELETE /api/role/{id}
+        [Authorize(Policy = "roles:delete")]
         public async Task<IActionResult> DeleteRole(Guid id)
         {
             try
@@ -121,6 +126,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpPut("{id}/permissions")] // PUT /api/role/{id}/permissions
+        [Authorize(Policy = "roles:assign_permissions")]
         public async Task<IActionResult> SyncPermissions(Guid id, [FromBody] SyncPermissionsRequestDto request)
         {
             try

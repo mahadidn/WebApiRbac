@@ -19,6 +19,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpGet] // api/user?pageNumber=1&pageSize=10
+        [Authorize(Policy = "users:read")]
         public async Task<IActionResult> GetAllUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             // validasi keamanan
@@ -50,6 +51,7 @@ namespace WebApiRbac.Controllers
 
         // get by id
         [HttpGet("{id}")] // GET api/user/{id}
+        [Authorize(Policy = "users:read")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
             var user = await _userService.GetUserByIdAsync(id);
@@ -66,6 +68,7 @@ namespace WebApiRbac.Controllers
             });
         }
 
+        //(update user tidak dikasih permission karna tiap user boleh update akunnya sendiri)
         [HttpPut("{id}")] // PUT api/user/{id}
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateDto request)
         {
@@ -88,6 +91,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpPut("{id}/roles")] // PUT api/user/{id}/roles
+        [Authorize(Policy = "users:assign_roles")]
         public async Task<IActionResult> SyncRoles(Guid id, [FromBody] SyncUserRolesRequestDto request)
         {
             try

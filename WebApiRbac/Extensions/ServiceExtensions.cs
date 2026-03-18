@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -7,6 +8,7 @@ using WebApiRbac.Application.Services;
 using WebApiRbac.Domain.Interfaces;
 using WebApiRbac.Infrastructure.Data;
 using WebApiRbac.Infrastructure.Repositories;
+using WebApiRbac.Infrastructure.Security;
 
 namespace WebApiRbac.Extensions
 {
@@ -80,6 +82,11 @@ namespace WebApiRbac.Extensions
 
             // Menambahkan fitur Authorization (Mengecek Hak Akses / Role)
             services.AddAuthorization();
+
+            // daftarkan aturan dinamis (hunakan singleton karena ini aturan baku)
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+            // daftarkan security
+            services.AddScoped<IAuthorizationHandler, PermissionHandler>();
         }
 
     }

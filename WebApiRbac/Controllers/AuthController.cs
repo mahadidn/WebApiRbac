@@ -157,6 +157,8 @@ namespace WebApiRbac.Controllers
             var id = User.GetUserId();
             var username = User.GetUsername();
             var email = User.GetEmail();
+            var role = User.GetRoles();
+            var permissions = User.GetPermissions();
 
             return Ok(new
             {
@@ -164,7 +166,9 @@ namespace WebApiRbac.Controllers
                 data = new
                 {
                     userId = id,
-                    userEmail = email
+                    userEmail = email,
+                    roles = role,
+                    permissions
                 }
             });
         }

@@ -18,6 +18,7 @@ namespace WebApiRbac.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "permissions:read")]
         public async Task<IActionResult> GetAllPermissions()
         {
             var permissions = await _permissionService.GetAllPermissionsAsync();
