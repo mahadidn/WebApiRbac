@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="WebApiRbac.UnitTests/WebApiRbac.UnitTests.csproj" Id="66cc1887-53f2-43a7-a4dc-e2507699d530" />
   <Project Path="WebApiRbac/WebApiRbac.csproj" />
 </Solution>
